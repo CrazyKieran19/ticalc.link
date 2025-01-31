@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -22,16 +23,11 @@
         <p>Send a file to your calculator over USB from right here in your web browser.</p>
         <section class="buttons">
           <button id="connect" class="active"><span>1</span> Select calculator</button>
-          <button id="upload" onclick="document.getElementById('fileInput').click();"><span>2</span> Select file</button>
-          <button id="start" onclick="uploadFile()"><span>3</span> Send it!</button>
+          <button id="upload"><span>2</span> Select file</button>
+          <button id="start"><span>3</span> Send it!</button>
         </section>
-
-        <!-- File input field (hidden) -->
-        <input type="file" id="fileInput" style="display: none;" />
-        
         <p>Currently supported: <span id="supported"></span></p>
       </section>
-
       <section id="incompatible">
         <h1>ticalc.link</h1>
         <p>Sorry, this web browser does not support WebUSB. Please try using a different web browser!</p>
