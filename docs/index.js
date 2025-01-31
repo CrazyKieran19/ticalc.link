@@ -1,36 +1,61 @@
-async sendFile(e) {
-    // Iterate through the entries of the file object and send each part
-    for (let t = 0; t < e.entries.length; t++) {
-        await this._sendEntry(e.entries[t]);
-    }
+// index.js
+
+let selectedFile;
+let device;
+
+document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
+
+async function handleFileSelect(event) {
+  selectedFile = event.target.files[0];
+  if (selectedFile) {
+    console.log("Selected file:", selectedFile.name);
+  }
 }
 
-async _sendEntry(fileEntry) {
-    // Send each entry's metadata
-    await this._d.send({
-        type: s.virtualPacketTypes.DUSB_VPKT_RTS,
-        data: [
-            ...i.intToBytes(fileEntry.name.length, 2),
-            ...i.asciiToBytes(fileEntry.name, fileEntry.name.length),
-            0, // File type or additional data, could be modified for generalization
-            ...i.intToBytes(fileEntry.size, 4),
-            s.transferModes.SILENT, // Silent transfer mode (non-interrupting)
-            ...this._entryParameters(fileEntry)
-        ]
-    });
-    
-    await this._d.expect(s.virtualPacketTypes.DUSB_VPKT_DATA_ACK);
-    
-    // Send the actual file data in chunks
-    await this._d.send({
-        type: s.virtualPacketTypes.DUSB_VPKT_VAR_CNTS,
-        data: fileEntry.data
-    });
+async function uploadFile() {
+  if (!selectedFile) {
+    alert('Please select a file first.');
+    return;
+  }
 
-    await this._d.expect(s.virtualPacketTypes.DUSB_VPKT_DATA_ACK);
+  const buffer = await selectedFile.arrayBuffer();
+  const packetCount = Math.ceil(buffer.byteLength / 128);  // Assuming 128-byte packet size
+  console.log(`Packet count: ${packetCount}`);
 
-    // End of transfer signal
-    await this._d.send({
-        type: s.virtualPacketTypes.DUSB_VPKT_EOT
-    });
+  try {
+    // Request the device
+    device = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x1d50, productId: 0x6081 }] });
+    
+    // Open and claim the device
+    await device.open();
+    await device.selectConfiguration(1);
+    await device.claimInterface(0);
+
+    // Send the file in packets
+    for (let i = 0; i < packetCount; i++) {
+      const packetData = new Uint8Array(128);  // A packet size of 128 bytes
+      const start = i * 128;
+      const end = Math.min((i + 1) * 128, buffer.byteLength);
+      packetData.set(new Uint8Array(buffer.slice(start, end)));
+
+      // Send the packet to the device
+      await sendPacketToDevice(device, packetData);
+    }
+
+    console.log('Upload completed!');
+    alert('File uploaded successfully!');
+  } catch (error) {
+    console.error('Error during upload:', error);
+    alert('An error occurred during upload.');
+  }
+}
+
+// Function to send packet data to the device
+async function sendPacketToDevice(device, packetData) {
+  try {
+    await device.transferOut(1, packetData);
+    console.log("Sent packet:", packetData);
+  } catch (error) {
+    console.error('Error sending packet:', error);
+  }
 }
