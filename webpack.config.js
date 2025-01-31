@@ -1,27 +1,26 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development',
-
-  entry: {
-    'index': './src/index.js'
+  entry: './src/index.js',
+  output: {
+    filename: 'index.js',
+    path: path.resolve(__dirname, 'docs'), // Ensure it outputs to docs/
   },
-
-	output: {
-		path: path.join(__dirname, 'docs'),
-		filename: '[name].js'
-	},
-
-  watchOptions: {
-    ignored: [
-      '/node_modules/'
-    ]
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'sass-loader'],
+      },
+    ],
   },
-
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'docs'),
-      watch: true
-    }
-  }
+    contentBase: path.resolve(__dirname, 'docs'),
+    watchContentBase: true,
+    open: true, // Automatically open the HTML page after start
+  },
 };
