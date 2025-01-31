@@ -55,8 +55,6 @@ function updateButtons() {
 
 function attachConnectionListeners() {
   ticalc.addEventListener('disconnect', calc => {
-    // Maybe we disconnected a different calculator than
-    // the one we currently have selected..?
     if ( calc != calculator ) return;
 
     calculator = null;
@@ -100,7 +98,7 @@ function attachClickListeners() {
 function selectFile() {
   const input = document.createElement('input');
   input.type  = 'file';
-  input.accept = '.8xp,.8xg,.8xv,.83p,.83g,.82p,.82g';
+  input.accept = '*/*';  // Accept all file types
   input.addEventListener('change', async c => {
     file = tifiles.parseFile(await readFile(c.target.files[0]));
     console.log(file);
