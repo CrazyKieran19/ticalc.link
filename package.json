@@ -2,7 +2,7 @@
   "name": "ticalc.link",
   "description": "Send files to your calculator from the browser",
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --mode development",
     "watch-styles": "node-sass --output-style='compressed' --watch ./styles/index.scss ./docs/style.css",
     "build": "webpack --mode production && node-sass --output-style='compressed' ./styles/index.scss ./docs/style.css"
   },
