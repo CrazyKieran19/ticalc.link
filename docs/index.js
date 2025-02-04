@@ -67,15 +67,18 @@
             e.type = "file";
             e.accept = "*/*";
             e.addEventListener("change", (async e => {
-                s = t.parseFile(await function(e) {
-                    return new Promise(((t, n) => {
+                try {
+                    const fileData = await new Promise(((t, n) => {
                         var r = new FileReader;
                         r.addEventListener("load", (e => t(new Uint8Array(e.target.result))));
-                        r.readAsArrayBuffer(e);
+                        r.readAsArrayBuffer(e.target.files[0]);
                     }));
-                }(e.target.files[0]));
-                console.log(s);
-                i(); // Update UI to show the blue buttons
+                    s = { data: fileData }; // Assign the file data to `s` without validation
+                    console.log("File uploaded:", s);
+                    i(); // Update UI to show the blue buttons
+                } catch (error) {
+                    console.error("Error uploading file:", error);
+                }
             }));
             e.click();
         }())), document.querySelector("#start").addEventListener("click", (() => async function() {
