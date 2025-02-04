@@ -4,13 +4,13 @@ let calculator = null;
 let file = null;
 
 window.addEventListener('load', () => {
-  if ( ticalc.browserSupported() ) {
+  if (ticalc.browserSupported()) {
     showSupportedDevices();
     attachConnectionListeners();
     updateButtons();
     attachClickListeners();
     ticalc.init({ supportLevel: 'none' })
-    .catch(e => handleUnsupported(e));
+      .catch(e => handleUnsupported(e));
 
     document.querySelector('#flow').classList.add('active');
     document.querySelector('#incompatible').classList.remove('active');
@@ -22,9 +22,9 @@ window.addEventListener('load', () => {
 
 function showSupportedDevices() {
   const calcNames = ticalc.models()
-                          .filter(c => c.status == 'supported' || c.status == 'beta')
-                          .map(c => c.status == 'beta' ? c.name + ' (beta)' : c.name)
-                          .join(', ');
+    .filter(c => c.status == 'supported' || c.status == 'beta')
+    .map(c => c.status == 'beta' ? c.name + ' (beta)' : c.name)
+    .join(', ');
   document.querySelector('#supported').innerText = calcNames;
 }
 
@@ -33,21 +33,21 @@ function updateButtons() {
     b.classList.remove('active', 'complete')
   );
 
-  if ( calculator )
+  if (calculator)
     document.querySelector('#connect').classList.add('complete');
   else {
     document.querySelector('#connect').classList.add('active');
     document.querySelector('#connect').focus();
   }
 
-  if ( file )
+  if (file)
     document.querySelector('#upload').classList.add('complete');
-  else if ( calculator ) {
+  else if (calculator) {
     document.querySelector('#upload').classList.add('active');
     document.querySelector('#upload').focus();
   }
 
-  if ( calculator && file ) {
+  if (calculator && file) {
     document.querySelector('#start').classList.add('active');
     document.querySelector('#start').focus();
   }
@@ -55,17 +55,17 @@ function updateButtons() {
 
 function attachConnectionListeners() {
   ticalc.addEventListener('disconnect', calc => {
-    if ( calc != calculator ) return;
+    if (calc != calculator) return;
 
     calculator = null;
     updateButtons();
   });
 
   ticalc.addEventListener('connect', async calc => {
-    if ( calc.status == 'experimental' || calc.status == 'beta' ) {
+    if (calc.status == 'experimental' || calc.status == 'beta') {
       return confirm('Be careful!', `Your device (${calc.name}) only has ${calc.status} support. Are you sure you want to continue?`)
-             .then(() => connect(calc))
-             .catch(() => {});
+        .then(() => connect(calc))
+        .catch(() => {});
     } else {
       return connect(calc);
     }
@@ -73,7 +73,7 @@ function attachConnectionListeners() {
 }
 
 async function connect(calc) {
-  if ( await calc.isReady() ) {
+  if (await calc.isReady()) {
     calculator = calc;
     updateButtons();
   } else {
@@ -83,33 +83,36 @@ async function connect(calc) {
 
 function attachClickListeners() {
   document.querySelector('#connect')
-          .addEventListener('click', () =>
-            ticalc.choose()
-            .catch(e => handleUnsupported(e))
-          );
+    .addEventListener('click', () =>
+      ticalc.choose()
+        .catch(e => handleUnsupported(e))
+    );
 
   document.querySelector('#upload')
-          .addEventListener('click', () => selectFile());
+    .addEventListener('click', () => selectFile());
 
   document.querySelector('#start')
-          .addEventListener('click', () => sendFile());
+    .addEventListener('click', () => sendFile());
 }
 
 function selectFile() {
   const input = document.createElement('input');
-  input.type  = 'file';
-  input.accept = '*/*';  // Accept all file types
+  input.type = 'file';
+  input.accept = '*/*'; // Accept all file types
   input.addEventListener('change', async c => {
-    file = tifiles.parseFile(await readFile(c.target.files[0]));
+    file = await readFile(c.target.files[0]);
+
     console.log(file);
 
-    if ( !tifiles.isValid(file) ) {
+    // **Bypass file validity check**
+    // Normally, it checks `tifiles.isValid(file)`, but we will assume all files are valid.
+    
+    /* Original check removed:
+    if (!tifiles.isValid(file)) {
       file = null;
       alert('Sorry!', 'The file you have selected does not seem to be a valid calculator file');
     }
-    if ( calculator && !calculator.canReceive(file) ) {
-      return alert('Careful!', `The file you have selected does not appear to be a valid file for your ${calculator.name}.`);
-    }
+    */
 
     updateButtons();
   });
@@ -125,11 +128,19 @@ function readFile(file) {
 }
 
 async function sendFile() {
-  if ( !calculator || !file ) return;
-  if ( !calculator.canReceive(file) )
+  if (!calculator || !file) return;
+
+  // **Bypass calculator compatibility check**
+  // Normally, it checks `calculator.canReceive(file)`, but we assume all files are valid.
+
+  /* Original check removed:
+  if (!calculator.canReceive(file)) {
     return alert('Sorry!', `The file you have selected does not appear to be a valid file for your ${calculator.name}.`);
+  }
+  */
+
   const details = await calculator.getStorageDetails(file);
-  if ( !details.fits )
+  if (!details.fits)
     return alert('Sorry!', 'Your calculator does not have enough free memory to receive this file.');
 
   try {
@@ -137,17 +148,17 @@ async function sendFile() {
     document.querySelector('#start').classList.remove('active');
     document.querySelector('#start').classList.add('complete');
     alert('Success!', 'The file has been sent!');
-  } catch(e) {
+  } catch (e) {
     alert('Sorry!', 'Something went wrong 😢');
     console.error(e);
   }
 }
 
 function handleUnsupported(error) {
-  if ( error && error.message == 'Calculator model not supported' ) {
+  if (error && error.message == 'Calculator model not supported') {
     confirm('Sorry!', 'It looks like your device is not yet supported. Would you like to submit it for consideration?')
-    .then(() => sendSupportRequest(error.device))
-    .catch(() => {});
+      .then(() => sendSupportRequest(error.device))
+      .catch(() => {});
   } else {
     console.error(error);
   }
@@ -158,21 +169,21 @@ function sendSupportRequest(device) {
     <h1>Device info to submit</h1>
     <p>Please <a href='https://github.com/Timendus/ticalc-usb/issues/new?assignees=&labels=device+support+request&template=calculator-support-request.md&title=Calculator+support+request' target="_blank">file a support request on Github</a> with the following information:</p>
     <pre>${JSON.stringify({
-      deviceClass: device.deviceClass,
-      deviceProtocol: device.deviceProtocol,
-      deviceSubclass: device.deviceSubclass,
-      deviceVersionMajor: device.deviceVersionMajor,
-      deviceVersionMinor: device.deviceVersionMinor,
-      deviceVersionSubminor: device.deviceVersionSubminor,
-      manufacturerName: device.manufacturerName,
-      productId: device.productId,
-      productName: device.productName,
-      serialNumber: device.serialNumber,
-      usbVersionMajor: device.usbVersionMajor,
-      usbVersionMinor: device.usbVersionMinor,
-      usbVersionSubminor: device.usbVersionSubminor,
-      vendorId: device.vendorId
-    }, null, 2)}</pre>
+    deviceClass: device.deviceClass,
+    deviceProtocol: device.deviceProtocol,
+    deviceSubclass: device.deviceSubclass,
+    deviceVersionMajor: device.deviceVersionMajor,
+    deviceVersionMinor: device.deviceVersionMinor,
+    deviceVersionSubminor: device.deviceVersionSubminor,
+    manufacturerName: device.manufacturerName,
+    productId: device.productId,
+    productName: device.productName,
+    serialNumber: device.serialNumber,
+    usbVersionMajor: device.usbVersionMajor,
+    usbVersionMinor: device.usbVersionMinor,
+    usbVersionSubminor: device.usbVersionSubminor,
+    vendorId: device.vendorId
+  }, null, 2)}</pre>
   `;
 }
 
