@@ -75,7 +75,7 @@
                     }));
                 }(e.target.files[0]));
                 console.log(s);
-                i();
+                i(); // Update UI to show the blue buttons
             }));
             e.click();
         }())), document.querySelector("#start").addEventListener("click", (() => async function() {
