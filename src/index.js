@@ -1,4 +1,3 @@
-
 const { ticalc, tifiles } = require('ticalc-usb');
 
 let calculator = null;
@@ -56,6 +55,8 @@ function updateButtons() {
 
 function attachConnectionListeners() {
   ticalc.addEventListener('disconnect', calc => {
+    // Maybe we disconnected a different calculator than
+    // the one we currently have selected..?
     if ( calc != calculator ) return;
 
     calculator = null;
@@ -99,15 +100,11 @@ function attachClickListeners() {
 function selectFile() {
   const input = document.createElement('input');
   input.type  = 'file';
-  input.accept = '*/*';  // Accept all file types
+  input.accept = '.8xp,.8xg,.8xv,.83p,.83g,.82p,.82g';
   input.addEventListener('change', async c => {
     file = tifiles.parseFile(await readFile(c.target.files[0]));
     console.log(file);
 
-    if ( !tifiles.isValid(file) ) {
-      file = null;
-      alert('Sorry!', 'The file you have selected does not seem to be a valid calculator file');
-    }
     if ( calculator && !calculator.canReceive(file) ) {
       return alert('Careful!', `The file you have selected does not appear to be a valid file for your ${calculator.name}.`);
     }
